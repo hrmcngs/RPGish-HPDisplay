@@ -5,9 +5,7 @@
         data modify entity @s PortalCooldown set value 10
     # 名前表示
         data modify entity @s CustomNameVisible set value 1b
-
     # 透明化
-
         data merge entity @s {Invisible:1}
     # 名前=値
         data modify entity @s CustomName set from entity @s Item.tag.display.Name
