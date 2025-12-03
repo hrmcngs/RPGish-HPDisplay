@@ -33,6 +33,7 @@
         "minecraft:mule",
         "minecraft:ocelot",
         "minecraft:panda",
+        "minecraft:player",
         "minecraft:parrot",
         "minecraft:pig",
         "minecraft:piglin",
@@ -59,6 +60,10 @@
         "minecraft:vindicator",
         "minecraft:wandering_trader",
         "minecraft:witch",
-        "minecraft:wolf"
+        "minecraft:wolf",
+        "minecraft_armor_weapon:common_soldier",
+        "minecraft_armor_weapon:elite_soldier",
+        "minecraft_armor_weapon:heroic_tier",
+        "minecraft_armor_weapon:singularity",
     ]
 }
