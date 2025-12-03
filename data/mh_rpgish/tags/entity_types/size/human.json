@@ -22,6 +22,10 @@
         "minecraft:zoglin",
         "minecraft:zombie",
         "minecraft:zombie_villager",
-        "minecraft:zombified_piglin"
+        "minecraft:zombified_piglin",
+        "minecraft_armor_weapon:common_soldier",
+        "minecraft_armor_weapon:elite_soldier",
+        "minecraft_armor_weapon:heroic_tier",
+        "minecraft_armor_weapon:singularity",
     ]
 }
