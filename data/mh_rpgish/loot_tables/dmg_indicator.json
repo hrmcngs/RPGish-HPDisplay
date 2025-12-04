@@ -60,6 +60,130 @@
                                     }
                                 }
                             ]
+                        },
+                        {
+                            "function": "minecraft:set_name",
+                            "entity": "this",
+                            "name": {
+                                "score": {
+                                    "name": "$Health",
+                                    "objective": "Temporary"
+                                },
+                                "color": "#9CF6FF"
+                            },
+                            "conditions": [
+                                {
+                                    "condition": "minecraft:entity_properties",
+                                    "entity": "this",
+                                    "predicate": {
+                                        "flags": {
+                                            "is_freezing": true
+                                        }
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "function": "minecraft:set_name",
+                            "entity": "this",
+                            "name": {
+                                "score": {
+                                    "name": "$Health",
+                                    "objective": "Temporary"
+                                },
+                                "color": "#4B0082"
+                            },
+                            "conditions": [
+                                {
+                                    "condition": "minecraft:entity_properties",
+                                    "entity": "this",
+                                    "predicate": {
+                                        "effects": {
+                                            "minecraft:wither": {}
+                                        }
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "function": "minecraft:set_name",
+                            "entity": "this",
+                            "name": {
+                                "score": {
+                                    "name": "$Health",
+                                    "objective": "Temporary"
+                                },
+                                "color": "#00FFFF"
+                            },
+                            "conditions": [
+                                {
+                                    "condition": "minecraft:entity_properties",
+                                    "entity": "this",
+                                    "predicate": {
+                                        "nbt": "{Tags:[\"mh_rpgish.ice_damage\"]}"
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "function": "minecraft:set_name",
+                            "entity": "this",
+                            "name": {
+                                "score": {
+                                    "name": "$Health",
+                                    "objective": "Temporary"
+                                },
+                                "color": "#FFFF00"
+                            },
+                            "conditions": [
+                                {
+                                    "condition": "minecraft:entity_properties",
+                                    "entity": "this",
+                                    "predicate": {
+                                        "nbt": "{Tags:[\"mh_rpgish.electric_damage\"]}"
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "function": "minecraft:set_name",
+                            "entity": "this",
+                            "name": {
+                                "score": {
+                                    "name": "$Health",
+                                    "objective": "Temporary"
+                                },
+                                "color": "#8B00FF"
+                            },
+                            "conditions": [
+                                {
+                                    "condition": "minecraft:entity_properties",
+                                    "entity": "this",
+                                    "predicate": {
+                                        "nbt": "{Tags:[\"mh_rpgish.corrosion_damage\"]}"
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "function": "minecraft:set_name",
+                            "entity": "this",
+                            "name": {
+                                "score": {
+                                    "name": "$Health",
+                                    "objective": "Temporary"
+                                },
+                                "color": "#FFD700"
+                            },
+                            "conditions": [
+                                {
+                                    "condition": "minecraft:entity_properties",
+                                    "entity": "this",
+                                    "predicate": {
+                                        "nbt": "{Tags:[\"mh_rpgish.holy_damage\"]}"
+                                    }
+                                }
+                            ]
                         }
                     ]
                 }

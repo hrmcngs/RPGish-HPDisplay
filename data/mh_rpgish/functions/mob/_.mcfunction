@@ -1,8 +1,11 @@
 ### 常時実行function (as @e[type=#mh_rpgish:mobs])
 
+# 飼いならしたオオカミは除外 (MC-193202バグ回避)
+    execute if entity @s[type=minecraft:wolf] if data entity @s Owner run tag @s add TamedWolf
+
 # モブ召喚時に初期処理
-    execute if entity @s[tag=!Init] run function mh_rpgish:mob/init
+    execute if entity @s[tag=!Init,tag=!TamedWolf] run function mh_rpgish:mob/init
 # HPが変更された時の検知
-    execute unless data entity @s {Health:512.0f} run function mh_rpgish:mob/hp_changed
+    execute unless entity @s[tag=TamedWolf] run function mh_rpgish:mob/hp_changed_check
 # HP表示時間切れ
-    execute if data entity @s {PortalCooldown:1} run function mh_rpgish:hp_bar/reset
+    execute unless entity @s[tag=TamedWolf] run function mh_rpgish:mob/reset_check
