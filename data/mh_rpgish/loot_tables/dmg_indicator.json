@@ -120,7 +120,7 @@
                                     "condition": "minecraft:entity_properties",
                                     "entity": "this",
                                     "predicate": {
-                                        "nbt": "{Tags:[\"mh_rpgish.ice_damage\"]}"
+                                        "nbt": "{Tags:[\"minecraft_armor_weapon.mh_rpgish.ice_damage\"]}"
                                     }
                                 }
                             ]
@@ -140,7 +140,7 @@
                                     "condition": "minecraft:entity_properties",
                                     "entity": "this",
                                     "predicate": {
-                                        "nbt": "{Tags:[\"mh_rpgish.electric_damage\"]}"
+                                        "nbt": "{Tags:[\"minecraft_armor_weapon.mh_rpgish.electric_damage\"]}"
                                     }
                                 }
                             ]
@@ -160,7 +160,7 @@
                                     "condition": "minecraft:entity_properties",
                                     "entity": "this",
                                     "predicate": {
-                                        "nbt": "{Tags:[\"mh_rpgish.corrosion_damage\"]}"
+                                        "nbt": "{Tags:[\"minecraft_armor_weapon.mh_rpgish.corrosion_damage\"]}"
                                     }
                                 }
                             ]
@@ -180,7 +180,7 @@
                                     "condition": "minecraft:entity_properties",
                                     "entity": "this",
                                     "predicate": {
-                                        "nbt": "{Tags:[\"mh_rpgish.holy_damage\"]}"
+                                        "nbt": "{Tags:[\"minecraft_armor_weapon.mh_rpgish.holy_damage\"]}"
                                     }
                                 }
                             ]
