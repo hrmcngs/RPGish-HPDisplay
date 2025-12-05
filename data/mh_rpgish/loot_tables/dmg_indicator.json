@@ -113,7 +113,7 @@
                                     "name": "$Health",
                                     "objective": "Temporary"
                                 },
-                                "color": "#00FFFF"
+                                "color": "#55FFFF"
                             },
                             "conditions": [
                                 {
@@ -133,7 +133,7 @@
                                     "name": "$Health",
                                     "objective": "Temporary"
                                 },
-                                "color": "#FFFF00"
+                                "color": "#FFFF55"
                             },
                             "conditions": [
                                 {
@@ -173,7 +173,7 @@
                                     "name": "$Health",
                                     "objective": "Temporary"
                                 },
-                                "color": "#FFD700"
+                                "color": "#FFAA00"
                             },
                             "conditions": [
                                 {
