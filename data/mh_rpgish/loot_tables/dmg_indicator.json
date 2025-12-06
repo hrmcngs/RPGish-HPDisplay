@@ -14,7 +14,8 @@
                                 "score": {
                                     "name": "$Health",
                                     "objective": "Temporary"
-                                }
+                                },
+                                "color": "white"
                             }
                         },
                         {

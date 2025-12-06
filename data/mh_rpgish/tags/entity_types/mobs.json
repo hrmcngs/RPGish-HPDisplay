@@ -35,7 +35,6 @@
 		"minecraft:mule",
 		"minecraft:ocelot",
 		"minecraft:panda",
-		"minecraft:player",
 		"minecraft:parrot",
 		"minecraft:phantom",
 		"minecraft:pig",
@@ -76,6 +75,6 @@
 		"minecraft_armor_weapon:common_soldier",
         "minecraft_armor_weapon:elite_soldier",
         "minecraft_armor_weapon:heroic_tier",
-        "minecraft_armor_weapon:singularity",
+        "minecraft_armor_weapon:singularity"
 	]
 }
