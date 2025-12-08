@@ -8,6 +8,10 @@
                     "name": "minecraft:stone_button",
                     "functions": [
                         {
+                            "function": "minecraft:set_nbt",
+                            "tag": "{CustomModelData:343014256}"
+                        }, 
+                        {
                             "function": "minecraft:set_name",
                             "entity": "this",
                             "name": {
@@ -92,7 +96,7 @@
                                     "name": "$Health",
                                     "objective": "Temporary"
                                 },
-                                "color": "#4B0082"
+                                "color": "#272628"
                             },
                             "conditions": [
                                 {
@@ -114,7 +118,7 @@
                                     "name": "$Health",
                                     "objective": "Temporary"
                                 },
-                                "color": "#55FFFF"
+                                "color": "#39d4ff"
                             },
                             "conditions": [
                                 {
@@ -154,7 +158,7 @@
                                     "name": "$Health",
                                     "objective": "Temporary"
                                 },
-                                "color": "#8B00FF"
+                                "color": "#ff19e8"
                             },
                             "conditions": [
                                 {

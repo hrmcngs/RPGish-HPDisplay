@@ -6,4 +6,5 @@ say reload
 
     scoreboard objectives add Temporary dummy
     scoreboard objectives add Constant dummy
+    scoreboard objectives add DmgDisplayTime dummy
     scoreboard players set #40 Constant 40
