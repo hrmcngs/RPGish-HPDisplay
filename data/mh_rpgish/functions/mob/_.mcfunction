@@ -1,4 +1,4 @@
-### 常時実行function (as @e[type=#mh_rpgish:mobs])
+## 常時実行function (as @e[type=#mh_rpgish:mobs])
 
 # 飼いならしたオオカミは除外 (MC-193202バグ回避)
     execute if entity @s[type=minecraft:wolf] if data entity @s Owner run tag @s add TamedWolf
