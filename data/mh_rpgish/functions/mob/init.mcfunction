@@ -1,4 +1,4 @@
-### 初期処理
+## 初期処理
 
 # モブのステータス → スコアに
     data modify storage mh_rpgish:temp Init.Health set from entity @s Health
