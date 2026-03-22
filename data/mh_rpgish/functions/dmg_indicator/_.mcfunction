@@ -15,3 +15,4 @@
     tag @s remove minecraft_armor_weapon.mh_rpgish.electric_damage
     tag @s remove minecraft_armor_weapon.mh_rpgish.corrosion_damage
     tag @s remove minecraft_armor_weapon.mh_rpgish.holy_damage
+    tag @s remove minecraft_armor_weapon.mh_rpgish.error_damage

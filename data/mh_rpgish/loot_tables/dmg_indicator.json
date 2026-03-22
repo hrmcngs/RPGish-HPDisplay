@@ -189,6 +189,27 @@
                                     }
                                 }
                             ]
+                        },
+                        {
+                            "function": "minecraft:set_name",
+                            "entity": "this",
+                            "name": {
+                                "score": {
+                                    "name": "$Health",
+                                    "objective": "Temporary"
+                                },
+                                "color": "red",
+                                "font": "minecraft_armor_weapon:static_noise"
+                            },
+                            "conditions": [
+                                {
+                                    "condition": "minecraft:entity_properties",
+                                    "entity": "this",
+                                    "predicate": {
+                                        "nbt": "{Tags:[\"minecraft_armor_weapon.mh_rpgish.error_damage\"]}"
+                                    }
+                                }
+                            ]
                         }
                     ]
                 }
