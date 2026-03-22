@@ -1,43 +1,109 @@
 #!/bin/bash
 set -e
 
-MC_VERSION="1.20.1"
-VERSION=$(cat VERSION)
+REPO="hrmcngs/RPGish-HPDisplay"
 
-echo "リリースタイプ:"
-echo "1) beta"
-echo "2) release"
-echo "0) キャンセル"
-read -rp "選択 [1]: " TYPE_CHOICE
+# --- 言語選択 ---
+echo "Language / 言語:"
+echo "1) 日本語"
+echo "2) English"
+read -rp "選択/Select [1]: " LANG_CHOICE
 
-case "${TYPE_CHOICE:-1}" in
-    0) echo "キャンセルしました"; exit 0 ;;
-    1) RELEASE_TYPE="beta" ;;
-    2) RELEASE_TYPE="release" ;;
-    *) echo "無効な選択"; exit 1 ;;
-esac
+if [ "${LANG_CHOICE:-1}" = "2" ]; then
+    L_CHECKING="Checking GitHub Releases..."
+    L_NO_BUILDS="Error: No zip files in builds/. Run ./build.sh first."
+    L_ALL_UPLOADED="No unpublished builds. Everything is already uploaded."
+    L_UNPUBLISHED="Unpublished builds:"
+    L_CANCEL="Cancel"
+    L_SELECT_UPLOAD="Select file to upload: "
+    L_CANCELLED="Cancelled."
+    L_INVALID="Invalid selection"
+    L_FILE="File"
+    L_TAG="Tag"
+    L_CREATING="Creating new release"
+    L_DONE="Done!"
+else
+    L_CHECKING="GitHub Releases を確認中..."
+    L_NO_BUILDS="Error: builds/ にzipファイルがありません。先に ./build.sh を実行してください。"
+    L_ALL_UPLOADED="未公開のビルドはありません。すべてアップロード済みです。"
+    L_UNPUBLISHED="未公開のビルド:"
+    L_CANCEL="キャンセル"
+    L_SELECT_UPLOAD="アップロードするファイルを選択: "
+    L_CANCELLED="キャンセルしました"
+    L_INVALID="無効な選択"
+    L_FILE="ファイル"
+    L_TAG="タグ"
+    L_CREATING="新しいリリースを作成"
+    L_DONE="完了!"
+fi
 
-NAME="RPGish-HPDisplay-${MC_VERSION}-${VERSION}-${RELEASE_TYPE}"
-ZIP="${NAME}.zip"
-TAG="RPGish-HPDisplay-${MC_VERSION}-${RELEASE_TYPE}"
-
-if [ ! -f "$ZIP" ]; then
-    echo "Error: ${ZIP} が見つかりません。先に ./build.sh で同じタイプをビルドしてください。"
+# --- builds/ 内のzipを一覧 ---
+if [ ! -d builds ] || [ -z "$(ls builds/*.zip 2>/dev/null)" ]; then
+    echo "$L_NO_BUILDS"
     exit 1
 fi
 
+# --- 公開済みリリースのタグ一覧を取得 ---
+echo "$L_CHECKING"
+EXISTING_TAGS=$(gh release list --repo "$REPO" --limit 100 2>/dev/null | awk -F'\t' '{print $3}')
+
+# --- 未公開のzipを抽出 ---
+CANDIDATES=()
+for f in builds/*.zip; do
+    BASENAME=$(basename "$f" .zip)
+    FOUND=false
+    for tag in $EXISTING_TAGS; do
+        if [ "$BASENAME" = "$tag" ]; then
+            FOUND=true
+            break
+        fi
+    done
+    if [ "$FOUND" = false ]; then
+        CANDIDATES+=("$f")
+    fi
+done
+
+if [ ${#CANDIDATES[@]} -eq 0 ]; then
+    echo "$L_ALL_UPLOADED"
+    exit 0
+fi
+
+# --- 選択メニュー ---
+echo ""
+echo "$L_UNPUBLISHED"
+for i in "${!CANDIDATES[@]}"; do
+    echo "$((i + 1))) $(basename "${CANDIDATES[$i]}")"
+done
+echo "0) ${L_CANCEL}"
+read -rp "$L_SELECT_UPLOAD" CHOICE
+
+if [ "$CHOICE" = "0" ] || [ -z "$CHOICE" ]; then
+    echo "$L_CANCELLED"
+    exit 0
+fi
+
+INDEX=$((CHOICE - 1))
+if [ $INDEX -lt 0 ] || [ $INDEX -ge ${#CANDIDATES[@]} ]; then
+    echo "$L_INVALID"
+    exit 1
+fi
+
+ZIP="${CANDIDATES[$INDEX]}"
+BASENAME=$(basename "$ZIP" .zip)
+TAG="$BASENAME"
+
+# --- beta/release判定 ---
 PRERELEASE_FLAG=""
-if [ "$RELEASE_TYPE" = "beta" ]; then
+if [[ "$BASENAME" == *-beta ]]; then
     PRERELEASE_FLAG="--prerelease"
 fi
 
-if gh release view "$TAG" --repo hrmcngs/RPGish-HPDisplay > /dev/null 2>&1; then
-    echo "Updating existing release: ${TAG}"
-    gh release upload "$TAG" "$ZIP" --clobber --repo hrmcngs/RPGish-HPDisplay
-    gh release edit "$TAG" --title "$ZIP" --repo hrmcngs/RPGish-HPDisplay
-else
-    echo "Creating new release: ${TAG}"
-    gh release create "$TAG" "$ZIP" --title "$ZIP" $PRERELEASE_FLAG --repo hrmcngs/RPGish-HPDisplay
-fi
+echo ""
+echo "${L_FILE}: $(basename "$ZIP")"
+echo "${L_TAG}:     ${TAG}"
+echo ""
 
-echo "Done! ${ZIP} -> ${TAG}"
+echo "${L_CREATING}: ${TAG}"
+gh release create "$TAG" "$ZIP" --title "$BASENAME" $PRERELEASE_FLAG --repo "$REPO"
+
+echo "${L_DONE} $(basename "$ZIP") -> ${TAG}"
