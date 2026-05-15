@@ -1,84 +1,104 @@
-#!/bin/bash
-set -e
+#!/usr/bin/env bash
+# build.sh — RPGish HP Display mod を Forge / Fabric / NeoForge 向けにビルドする
+#
+# Usage:
+#   ./build.sh                        # 3 つのローダー全部ビルド (デフォルト)
+#   ./build.sh forge                  # Forge だけ
+#   ./build.sh fabric                 # Fabric だけ
+#   ./build.sh neoforge               # NeoForge だけ
+#   ./build.sh all --offline          # 全部、オフラインモード (キャッシュ済み依存のみ使用)
+#   ./build.sh forge fabric --offline # 複数指定も OK
+#
+# Notes:
+#   - 初回ビルドはネット接続が必要 (Gradle 本体・Forge/Fabric SDK のダウンロード)
+#   - 一度成功すれば次回以降は --offline を付けてオフラインでも動く
+#   - macOS / Linux / WSL (Windows Subsystem for Linux) で動作
+#   - 生成 jar は <repo>/dist/ にコピーされる
 
-# --- 設定 ---
-MC_VERSION="1.20.1"
-VERSION_FILE="VERSION"
+set -euo pipefail
 
-# --- 言語選択 ---
-echo "Language / 言語:"
-echo "1) 日本語"
-echo "2) English"
-read -rp "選択/Select [1]: " LANG_CHOICE
+# --- リポジトリルート (このスクリプトがある場所) を解決 -----------------------
+SCRIPT_PATH="${BASH_SOURCE[0]:-$0}"
+ROOT="$(cd "$(dirname "$SCRIPT_PATH")" && pwd)"
+DIST="$ROOT/dist"
 
-if [ "${LANG_CHOICE:-1}" = "2" ]; then
-    L_CURRENT="Current version"
-    L_VERSION="Version:"
-    L_CANCEL="Cancel"
-    L_SELECT="Select"
-    L_RELEASE_TYPE="Release type:"
-    L_CANCELLED="Cancelled."
-    L_INVALID="Invalid selection"
-else
-    L_CURRENT="現在のバージョン"
-    L_VERSION="バージョン:"
-    L_CANCEL="キャンセル"
-    L_SELECT="選択"
-    L_RELEASE_TYPE="リリースタイプ:"
-    L_CANCELLED="キャンセルしました"
-    L_INVALID="無効な選択"
+# --- 引数パース -------------------------------------------------------------
+OFFLINE=""
+LOADERS=()
+
+for arg in "$@"; do
+    case "$arg" in
+        --offline|-o)   OFFLINE="--offline" ;;
+        forge|fabric|neoforge) LOADERS+=("$arg") ;;
+        all)            LOADERS=("forge" "fabric" "neoforge") ;;
+        -h|--help)
+            sed -n '2,15p' "$SCRIPT_PATH" | sed 's/^# \{0,1\}//'
+            exit 0
+            ;;
+        *) echo "Unknown argument: $arg" >&2; exit 2 ;;
+    esac
+done
+
+# 引数なしなら全ローダー
+if [ ${#LOADERS[@]} -eq 0 ]; then
+    LOADERS=("forge" "fabric" "neoforge")
 fi
 
-# --- バージョン読み込み ---
-if [ ! -f "$VERSION_FILE" ]; then
-    echo "1.0.0" > "$VERSION_FILE"
+# --- 環境チェック -----------------------------------------------------------
+if ! command -v java >/dev/null 2>&1; then
+    echo "ERROR: java が見つかりません。JDK 17 をインストールしてください。" >&2
+    exit 1
 fi
 
-CURRENT=$(cat "$VERSION_FILE")
-MAJOR=$(echo "$CURRENT" | cut -d. -f1)
-MINOR=$(echo "$CURRENT" | cut -d. -f2)
-PATCH=$(echo "$CURRENT" | cut -d. -f3)
+JAVA_MAJOR="$(java -version 2>&1 | awk -F '"' '/version/ {print $2}' | awk -F. '{print $1}')"
+if [ -n "$JAVA_MAJOR" ] && [ "$JAVA_MAJOR" -lt 17 ] 2>/dev/null; then
+    echo "WARNING: Java $JAVA_MAJOR が検出されました。Java 17+ を推奨します。" >&2
+fi
 
-echo ""
-echo "${L_CURRENT}: ${CURRENT}"
-echo ""
-echo "${L_VERSION}"
-echo "1) patch  (${MAJOR}.${MINOR}.$((PATCH + 1)))"
-echo "2) minor  (${MAJOR}.$((MINOR + 1)).0)"
-echo "3) major  ($((MAJOR + 1)).0.0)"
-echo "0) ${L_CANCEL}"
-read -rp "${L_SELECT} [1]: " CHOICE
+mkdir -p "$DIST"
 
-case "${CHOICE:-1}" in
-    0) echo "$L_CANCELLED"; exit 0 ;;
-    1) PATCH=$((PATCH + 1)) ;;
-    2) MINOR=$((MINOR + 1)); PATCH=0 ;;
-    3) MAJOR=$((MAJOR + 1)); MINOR=0; PATCH=0 ;;
-    *) echo "$L_INVALID"; exit 1 ;;
-esac
+# --- ビルド関数 -------------------------------------------------------------
+build_one() {
+    local name="$1"
+    local dir="$ROOT/mod-$name"
 
-NEW_VERSION="${MAJOR}.${MINOR}.${PATCH}"
+    if [ ! -d "$dir" ]; then
+        echo "skip $name: $dir が存在しません" >&2
+        return 0
+    fi
 
-echo ""
-echo "${L_RELEASE_TYPE}"
-echo "1) beta"
-echo "2) release"
-echo "0) ${L_CANCEL}"
-read -rp "${L_SELECT} [1]: " TYPE_CHOICE
+    echo "==================================================================="
+    echo " ビルド: $name  ($dir)  ${OFFLINE:+[OFFLINE]}"
+    echo "==================================================================="
 
-case "${TYPE_CHOICE:-1}" in
-    0) echo "$L_CANCELLED"; exit 0 ;;
-    1) RELEASE_TYPE="beta" ;;
-    2) RELEASE_TYPE="release" ;;
-    *) echo "$L_INVALID"; exit 1 ;;
-esac
+    (
+        cd "$dir"
+        # WSL/Linux で gradlew に実行権限が無い場合に備えて付与
+        [ -x ./gradlew ] || chmod +x ./gradlew
+        ./gradlew $OFFLINE build --no-daemon
+    )
 
-echo "$NEW_VERSION" > "$VERSION_FILE"
+    # 生成 jar (sources/dev/javadoc 以外) を dist/ にコピー
+    local jar
+    jar="$(find "$dir/build/libs" -maxdepth 1 -type f -name '*.jar' \
+        ! -name '*-sources.jar' ! -name '*-dev.jar' ! -name '*-javadoc.jar' \
+        -print0 2>/dev/null | xargs -0 ls -t 2>/dev/null | head -1)"
+    if [ -n "$jar" ]; then
+        local base
+        base="$(basename "$jar" .jar)"
+        local out="$DIST/${base}-${name}.jar"
+        cp "$jar" "$out"
+        echo "  -> $out"
+    else
+        echo "  WARNING: $name の jar が見つかりませんでした" >&2
+    fi
+}
 
-# --- ビルド ---
-NAME="RPGish-HPDisplay-${MC_VERSION}-${NEW_VERSION}-${RELEASE_TYPE}"
-ZIP="${NAME}.zip"
-mkdir -p builds
-rm -f "builds/${ZIP}"
-zip -r "builds/${ZIP}" pack.mcmeta pack.png data/ -x "*.git*"
-echo "Created builds/${ZIP} (v${NEW_VERSION})"
+# --- 実行 -------------------------------------------------------------------
+for loader in "${LOADERS[@]}"; do
+    build_one "$loader"
+done
+
+echo
+echo "完了。成果物: $DIST"
+ls -la "$DIST"
