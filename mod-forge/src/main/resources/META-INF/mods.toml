@@ -8,6 +8,9 @@ version="${mod_version}"
 displayName="${mod_name}"
 authors="${mod_authors}"
 description='''${mod_description}'''
+logoFile="logo.png"
+# ドット絵なのでスムージングを切ってくっきり表示する
+logoBlur=false
 
 # Forge 1.20.1 と NeoForge 1.20.1 はどちらも loader id "forge" を名乗るため
 # この依存ひとつで両方のローダーをカバーできる。

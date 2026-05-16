@@ -6,6 +6,7 @@
     "description": "RPG-ish floating damage numbers and HP bars above mobs. Ported from the original datapack.",
     "authors": ["hiromichi"],
     "license": "MIT",
+    "icon": "assets/mh_rpgish/icon.png",
     "environment": "*",
     "entrypoints": {
         "main": [

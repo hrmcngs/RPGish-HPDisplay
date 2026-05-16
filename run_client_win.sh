@@ -3,12 +3,13 @@
 #
 # Usage:
 #   ./run_client_win.sh                  # forge (デフォルト) で起動
+#   ./run_client_win.sh neoforge         # NeoForge ランタイムで起動
 #   ./run_client_win.sh fabric           # Fabric で起動
 #   ./run_client_win.sh forge --offline  # オフラインモード
 #   ./run_client_win.sh --offline        # forge + offline (省略形)
 #
 # Notes:
-#   - 1.20.1 では NeoForge も forge ビルドで動作 (neoforge 指定は forge にフォールバック)
+#   - forge / neoforge は同じ mod-forge/ を使い、Gradle の -Pplatform で SDK を切替
 #   - WSL 上で動かす場合、Windows 11 + WSLg なら追加設定不要でウィンドウが出る
 #     (Windows 10 + WSL2 は X サーバー (VcXsrv 等) のセットアップが必要)
 #   - Git Bash の場合は自動的に gradlew.bat を使用
@@ -27,21 +28,23 @@ OFFLINE=""
 
 for arg in "$@"; do
     case "$arg" in
-        forge|fabric)         LOADER="$arg" ;;
-        neoforge)
-            echo "INFO: NeoForge 1.20.1 は forge ビルドで起動します。" >&2
-            LOADER="forge"
-            ;;
-        --offline|-o|offline) OFFLINE="--offline" ;;
+        forge|neoforge|fabric) LOADER="$arg" ;;
+        --offline|-o|offline)  OFFLINE="--offline" ;;
         -h|--help)
-            sed -n '2,18p' "$SCRIPT_PATH" | sed 's/^# \{0,1\}//'
+            sed -n '2,19p' "$SCRIPT_PATH" | sed 's/^# \{0,1\}//'
             exit 0
             ;;
         *) echo "Unknown argument: $arg" >&2; exit 2 ;;
     esac
 done
 
-DIR="$ROOT/mod-$LOADER"
+# ローダー名 → ビルドディレクトリ + Gradle 追加引数
+case "$LOADER" in
+    forge)    DIR="$ROOT/mod-forge";  PLATFORM_ARG="-Pplatform=forge" ;;
+    neoforge) DIR="$ROOT/mod-forge";  PLATFORM_ARG="-Pplatform=neoforge" ;;
+    fabric)   DIR="$ROOT/mod-fabric"; PLATFORM_ARG="" ;;
+esac
+
 if [ ! -d "$DIR" ]; then
     echo "ERROR: $DIR が見つかりません" >&2
     exit 1
@@ -93,4 +96,4 @@ echo "==================================================================="
 echo " Minecraft クライアント起動: $LOADER ${IS_WSL:+(WSL)}${IS_GITBASH:+(Git Bash)} ${OFFLINE:+[OFFLINE]}"
 echo "==================================================================="
 
-exec "$GRADLEW" $OFFLINE runClient
+exec "$GRADLEW" $OFFLINE $PLATFORM_ARG runClient
