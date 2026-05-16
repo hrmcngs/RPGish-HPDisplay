@@ -33,18 +33,12 @@ minecraft {
             workingDirectory project.file('run-data')
             args '--mod', mod_id, '--all',
                  '--output', file('src/generated/resources/'),
-                 '--existing', file('../mod-common/src/main/resources/')
+                 '--existing', file('src/main/resources/')
         }
     }
 }
 
-// Forge と NeoForge でソースを共有するため mod-common を参照する
-sourceSets {
-    main {
-        java.srcDir '../mod-common/src/main/java'
-        resources.srcDirs '../mod-common/src/main/resources', 'src/generated/resources'
-    }
-}
+sourceSets.main.resources { srcDir 'src/generated/resources' }
 
 repositories {
     maven { url = 'https://maven.minecraftforge.net' }

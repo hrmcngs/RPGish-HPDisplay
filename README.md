@@ -28,14 +28,20 @@
 
 ### Mod (Minecraft 1.20.1)
 
-データパックと同じ機能を mod として実装したものを 3 つのローダー向けに提供しています。
+データパックと同じ機能を mod として実装したものを提供しています。
+**Forge / NeoForge / Fabric** に対応します。
+
+> **Forge と NeoForge について**
+> 1.20.1 では NeoForge は Forge のフォークで API が完全互換のため、
+> `mod-forge` でビルドした jar が **Forge でも NeoForge でもそのまま動きます**。
+> そのため Forge と NeoForge は 1 つのビルド (`mod-forge/`) に統合しています。
 
 #### クイックスタート
 
 リポジトリのルート (`/Users/hiromichi/Documents/github/datapack/RPGish-HPDisplay/`) で:
 
 ```bash
-# 全ローダーをビルド (Forge + Fabric + NeoForge) → dist/ に jar が並ぶ
+# 全ローダーをビルド → dist/ に jar が並ぶ
 ./build.sh
 
 # ビルド済みなら 2 回目以降はオフラインで OK
@@ -57,28 +63,24 @@
 | `./run_client_win.sh [loader] [--offline]` | 同じく WSL / Git Bash で起動 | (画面表示) |
 | `RPGish-HPDisplay-datapack/build.sh` | データパックの zip をビルド | `RPGish-HPDisplay-datapack/*.zip` |
 
-`loader` には `forge` / `fabric` / `neoforge` (省略時は `forge`)、`./build.sh` には `all` も指定可。
+`loader` には `forge` / `fabric` (省略時は `forge`)、`./build.sh` には `all` も指定可。
+`neoforge` を渡しても `forge` ビルドにフォールバックします。
 
 #### ディレクトリ構成
 
 ```
-mod-common/      Forge / NeoForge 共有の Java ソース・リソース (これだけ編集すれば両方に反映)
-mod-forge/       Forge 1.20.1 用の Gradle ビルド設定
-mod-neoforge/    NeoForge 1.20.1 用の Gradle ビルド設定
-mod-fabric/      Fabric 1.20.1 用 (Mixin ベースで API が異なるためソース別管理)
-build.sh         3 ローダーまとめてビルドするシェルスクリプト
+mod-forge/       Forge 1.20.1 用 mod (jar は NeoForge 1.20.1 でもそのまま動く)
+mod-fabric/      Fabric 1.20.1 用 mod (Mixin ベースで API が異なるためソース別管理)
+build.sh         まとめてビルドするシェルスクリプト
 dist/            ビルド成果物の集約先
 ```
-
-Forge と NeoForge は 1.20.1 では API が同一 (パッケージも `net.minecraftforge.*`) なので、
-ソースコードは `mod-common/` 1 箇所だけメンテすれば OK。
 
 #### 全部まとめてビルド (推奨)
 
 リポジトリのルートで:
 
 ```bash
-./build.sh              # forge / fabric / neoforge 全部ビルド → dist/ に jar が並ぶ
+./build.sh              # forge / fabric を全部ビルド → dist/ に jar が並ぶ
 ./build.sh forge        # 個別指定も可
 ./build.sh forge fabric # 複数指定
 ./build.sh --offline    # オフラインビルド (※下記参照)
@@ -88,17 +90,15 @@ Forge と NeoForge は 1.20.1 では API が同一 (パッケージも `net.mine
 
 ```
 dist/
-├── mh_rpgish-1.0.1-forge.jar
-├── mh_rpgish-1.0.1-fabric.jar
-└── mh_rpgish-1.0.1-neoforge.jar
+├── mh_rpgish-1.0.1-forge.jar    ← Forge / NeoForge 両対応
+└── mh_rpgish-1.0.1-fabric.jar
 ```
 
 #### 個別にビルドする場合
 
 ```bash
-cd mod-forge    && ./gradlew build   # 出力: mod-forge/build/libs/mh_rpgish-1.0.1.jar
-cd mod-fabric   && ./gradlew build   # 出力: mod-fabric/build/libs/mh_rpgish-1.0.1.jar
-cd mod-neoforge && ./gradlew build   # 出力: mod-neoforge/build/libs/mh_rpgish-1.0.1.jar
+cd mod-forge  && ./gradlew build   # 出力: mod-forge/build/libs/mh_rpgish-1.0.1.jar
+cd mod-fabric && ./gradlew build   # 出力: mod-fabric/build/libs/mh_rpgish-1.0.1.jar
 ```
 
 開発用に Minecraft クライアントを起動する場合:
@@ -109,7 +109,6 @@ cd mod-neoforge && ./gradlew build   # 出力: mod-neoforge/build/libs/mh_rpgish
 # macOS
 ./run_client_mac.sh                  # Forge (デフォルト)
 ./run_client_mac.sh fabric           # Fabric
-./run_client_mac.sh neoforge         # NeoForge
 ./run_client_mac.sh --offline        # Forge + オフライン
 ./run_client_mac.sh fabric --offline # Fabric + オフライン
 

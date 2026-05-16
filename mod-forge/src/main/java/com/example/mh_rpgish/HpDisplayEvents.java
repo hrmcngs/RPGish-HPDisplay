@@ -37,10 +37,16 @@ public class HpDisplayEvents {
     private static final String KEY_ORIGINAL_NAME = NS_TAG + "_original_name";
     private static final String KEY_HAS_ORIGINAL = NS_TAG + "_has_original";
     private static final String KEY_INDICATOR_DEATH = NS_TAG + "_indicator_death";
+    private static final String KEY_IND_VX = NS_TAG + "_ind_vx";
+    private static final String KEY_IND_VY = NS_TAG + "_ind_vy";
+    private static final String KEY_IND_VZ = NS_TAG + "_ind_vz";
     private static final String TAG_INDICATOR = "mh_rpgish.dmg_indicator";
 
     private static final int HP_BAR_TICKS = 100;   // 5 seconds
-    private static final int INDICATOR_TICKS = 10; // 0.5 seconds
+    private static final int INDICATOR_TICKS = 16; // ~0.8 seconds (浮上→落下が見える長さ)
+    private static final double INDICATOR_INIT_VY = 0.3;   // 初速 (上方向)
+    private static final double INDICATOR_GRAVITY = 0.045; // 1 tick ごとの落下加速
+    private static final double INDICATOR_HDRAG = 0.92;    // 水平方向の減速
 
     private final Map<ResourceKey<Level>, Set<UUID>> trackedBars = new HashMap<>();
     private final Map<ResourceKey<Level>, Set<UUID>> trackedIndicators = new HashMap<>();
@@ -133,11 +139,22 @@ public class HpDisplayEvents {
                     it.remove();
                     continue;
                 }
-                long deadline = e.getPersistentData().getLong(KEY_INDICATOR_DEATH);
+                CompoundTag pd = e.getPersistentData();
+                long deadline = pd.getLong(KEY_INDICATOR_DEATH);
                 if (deadline != 0L && now >= deadline) {
                     e.discard();
                     it.remove();
+                    continue;
                 }
+                // 浮き上がってから落下する放物線アニメーション (tick で手動制御)。
+                // Marker armor stand はエンジン物理が効かないため自前で動かす。
+                double vx = pd.getDouble(KEY_IND_VX);
+                double vy = pd.getDouble(KEY_IND_VY);
+                double vz = pd.getDouble(KEY_IND_VZ);
+                e.setPos(e.getX() + vx, e.getY() + vy, e.getZ() + vz);
+                pd.putDouble(KEY_IND_VX, vx * INDICATOR_HDRAG);
+                pd.putDouble(KEY_IND_VY, vy - INDICATOR_GRAVITY);
+                pd.putDouble(KEY_IND_VZ, vz * INDICATOR_HDRAG);
             }
         }
     }
@@ -212,10 +229,20 @@ public class HpDisplayEvents {
 
         ArmorStand stand = new ArmorStand(level, x, y, z);
         stand.setInvisible(true);
-        stand.setNoGravity(false);
+        stand.setNoGravity(true); // 動きは tick で手動制御するためエンジン重力は切る
         stand.setCustomNameVisible(true);
         stand.setInvulnerable(true);
         stand.addTag(TAG_INDICATOR);
+
+        // Marker 化: 当たり判定ゼロ + 名前プレートを spawn 位置のすぐ上に描画。
+        // 通常の Armor Stand は本体が約 2 ブロック高で、名前がその上に出るため
+        // 数値がモブの頭上はるか上に表示されてしまう。Marker setter は private なので
+        // NBT を往復させてフラグだけ立てる。Marker は当たり判定も無いので
+        // 「透明・回収不可・当たり判定なし」の要件も満たす。
+        CompoundTag flags = new CompoundTag();
+        stand.addAdditionalSaveData(flags);
+        flags.putBoolean("Marker", true);
+        stand.readAdditionalSaveData(flags);
 
         int dmgInt = Math.max(1, Math.round(damage));
         int color = DamageColors.resolve(victim, source);
@@ -223,25 +250,22 @@ public class HpDisplayEvents {
                 .withStyle(Style.EMPTY.withColor(TextColor.fromRgb(color)));
         stand.setCustomName(label);
 
+        // 浮き上がってから落下する放物線アニメーション用の初速。左右にランダムに散らす。
         ThreadLocalRandom rng = ThreadLocalRandom.current();
-        double mx = (rng.nextBoolean() ? 1 : -1) * 0.08;
-        double mz = (rng.nextBoolean() ? 1 : -1) * 0.04;
-        stand.setDeltaMovement(mx, 0.2, mz);
-        stand.hasImpulse = true;
-
-        long deadline = level.getGameTime() + INDICATOR_TICKS;
-        stand.getPersistentData().putLong(KEY_INDICATOR_DEATH, deadline);
+        CompoundTag pd = stand.getPersistentData();
+        pd.putDouble(KEY_IND_VX, (rng.nextDouble() - 0.5) * 0.12);
+        pd.putDouble(KEY_IND_VY, INDICATOR_INIT_VY);
+        pd.putDouble(KEY_IND_VZ, (rng.nextDouble() - 0.5) * 0.12);
+        pd.putLong(KEY_INDICATOR_DEATH, level.getGameTime() + INDICATOR_TICKS);
 
         level.addFreshEntity(stand);
         trackedIndicators.computeIfAbsent(level.dimension(), k -> new HashSet<>()).add(stand.getUUID());
     }
 
     private double pickHeightOffset(LivingEntity entity) {
-        float h = entity.getBbHeight();
-        if (h < 1.0f) return 0.4;
-        if (h < 1.5f) return 0.8;
-        if (h < 2.0f) return 1.3;
-        return 1.9;
+        // Marker armor stand の名前プレートは spawn 位置の約 0.5 上に描画される。
+        // 被弾エンティティの頭頂 +0.3 あたりに数値が来るよう、その分を引いておく。
+        return entity.getBbHeight() + 0.3 - 0.5;
     }
 
     public static boolean isIndicator(Entity e) {

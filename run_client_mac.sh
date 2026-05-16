@@ -4,11 +4,11 @@
 # Usage:
 #   ./run_client_mac.sh                  # forge (デフォルト) で起動
 #   ./run_client_mac.sh fabric           # Fabric で起動
-#   ./run_client_mac.sh neoforge         # NeoForge で起動
 #   ./run_client_mac.sh forge --offline  # オフラインモード
 #   ./run_client_mac.sh --offline        # forge + offline (省略形)
 #
 # Notes:
+#   - 1.20.1 では NeoForge も forge ビルドで動作する (neoforge 指定は forge にフォールバック)
 #   - 初回起動時はネット必須 (Gradle 本体 + Minecraft 資産ダウンロード)
 #   - 二度目以降は --offline で起動可能
 #   - 起動後の Minecraft 内で「Singleplayer → 新規ワールド作成」して動作確認できる
@@ -23,8 +23,12 @@ OFFLINE=""
 
 for arg in "$@"; do
     case "$arg" in
-        forge|fabric|neoforge) LOADER="$arg" ;;
-        --offline|-o|offline)  OFFLINE="--offline" ;;
+        forge|fabric)         LOADER="$arg" ;;
+        neoforge)
+            echo "INFO: NeoForge 1.20.1 は forge ビルドで起動します。" >&2
+            LOADER="forge"
+            ;;
+        --offline|-o|offline) OFFLINE="--offline" ;;
         -h|--help)
             sed -n '2,15p' "$SCRIPT_PATH" | sed 's/^# \{0,1\}//'
             exit 0

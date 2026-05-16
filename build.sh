@@ -1,15 +1,16 @@
 #!/usr/bin/env bash
-# build.sh — RPGish HP Display mod を Forge / Fabric / NeoForge 向けにビルドする
+# build.sh — RPGish HP Display mod を Forge / Fabric 向けにビルドする
 #
 # Usage:
-#   ./build.sh                        # 3 つのローダー全部ビルド (デフォルト)
+#   ./build.sh                        # 全ローダーをビルド (デフォルト)
 #   ./build.sh forge                  # Forge だけ
 #   ./build.sh fabric                 # Fabric だけ
-#   ./build.sh neoforge               # NeoForge だけ
 #   ./build.sh all --offline          # 全部、オフラインモード (キャッシュ済み依存のみ使用)
 #   ./build.sh forge fabric --offline # 複数指定も OK
 #
 # Notes:
+#   - 1.20.1 では Forge と NeoForge は互換のため、mod-forge の jar が両方で動く
+#     (neoforge を引数に渡しても forge ビルドにフォールバックする)
 #   - 初回ビルドはネット接続が必要 (Gradle 本体・Forge/Fabric SDK のダウンロード)
 #   - 一度成功すれば次回以降は --offline を付けてオフラインでも動く
 #   - macOS / Linux / WSL (Windows Subsystem for Linux) で動作
@@ -29,10 +30,14 @@ LOADERS=()
 for arg in "$@"; do
     case "$arg" in
         --offline|-o)   OFFLINE="--offline" ;;
-        forge|fabric|neoforge) LOADERS+=("$arg") ;;
-        all)            LOADERS=("forge" "fabric" "neoforge") ;;
+        forge|fabric)   LOADERS+=("$arg") ;;
+        neoforge)
+            echo "INFO: NeoForge 1.20.1 は forge ビルドの jar で動作します。forge をビルドします。" >&2
+            LOADERS+=("forge")
+            ;;
+        all)            LOADERS=("forge" "fabric") ;;
         -h|--help)
-            sed -n '2,15p' "$SCRIPT_PATH" | sed 's/^# \{0,1\}//'
+            sed -n '2,17p' "$SCRIPT_PATH" | sed 's/^# \{0,1\}//'
             exit 0
             ;;
         *) echo "Unknown argument: $arg" >&2; exit 2 ;;
@@ -41,7 +46,7 @@ done
 
 # 引数なしなら全ローダー
 if [ ${#LOADERS[@]} -eq 0 ]; then
-    LOADERS=("forge" "fabric" "neoforge")
+    LOADERS=("forge" "fabric")
 fi
 
 # --- 環境チェック -----------------------------------------------------------
